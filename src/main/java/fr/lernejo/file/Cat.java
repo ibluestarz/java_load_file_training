@@ -1,43 +1,82 @@
 package fr.lernejo.file;
 
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.List;
-import java.util.Optional;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.util.Scanner;
+
+import static java.lang.System.exit;
 
 public class Cat {
-
-    public static void main(String[] args) {
-        if (args.length != 5) {
-            System.out.println("Usage: <start_date> <end_date> <type> <day_night> <aggregation>");
-            return;
+    public static int run(String[] args) throws FileNotFoundException {
+        if (args.length == 0) {
+            System.out.println("Missing argument");
+            return 3;
+        } else if (args.length > 1) {
+            System.out.println("Too many arguments");
+            return 4;
+        } else {
+            File file = new File(args[0]);
+            if (file.isDirectory()) {
+                System.out.println("A file is required");
+                return 6;
+            } else if (!file.exists()) {
+                System.out.println("File not found");
+                return 5;
+            }
+            if (file.length() > 3072) {
+                System.out.println("File too large");
+                return 7;
+            }
+            if (file.isFile()) {
+                Scanner inputFile = new Scanner(file);
+                // Read lines from the file until no more are left.
+                while (inputFile.hasNext())
+                {
+                    // Read the next name.
+                    String familyName = inputFile.nextLine();
+                    // Display the last name read.
+                    System.out.println(familyName);
+                }
+                // Close the file.
+                inputFile.close();
+            }
+            return 0;
         }
+    }
 
-        String startDateStr = args[0];
-        String endDateStr = args[1];
-        String type = args[2];
-        String dayNight = args[3];
-        String aggregation = args[4]; // Type d'agrégation : SUM, AVG, MIN, MAX
-
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-        LocalDateTime startDate, endDate;
-
-        try {
-            startDate = LocalDateTime.parse(startDateStr, formatter);
-            endDate = LocalDateTime.parse(endDateStr, formatter);
-        } catch (Exception e) {
-            System.err.println("Invalid date format. Use yyyy-MM-dd.");
-            return;
+    public static void main(String[] args) throws FileNotFoundException {
+        if (args.length == 0) {
+            System.out.println("Missing argument");
+            exit(3);
+        } else if (args.length > 1) {
+            System.out.println("Too many arguments");
+            exit(4);
+        } else {
+            File file = new File(args[0]);
+            if (file.isDirectory()) {
+                System.out.println("A file is required");
+                exit(6);
+            } else if (!file.exists()) {
+                System.out.println("File not found");
+                exit(5);
+            }
+            if (file.length() > 3072) {
+                System.out.println("File too large");
+                exit(7);
+            }
+            if (file.isFile()) {
+                Scanner inputFile = new Scanner(file);
+                // Read lines from the file until no more are left.
+                while (inputFile.hasNext())
+                {
+                    // Read the next name.
+                    String familyName = inputFile.nextLine();
+                    // Display the last name read.
+                    System.out.println(familyName);
+                }
+                // Close the file.
+                inputFile.close();
+            }
         }
-
-        Reader reader = new Reader();
-        List<CsvRecord> records = reader.readCsv("data.csv");
-
-        Optional<Double> result = Aggregator.aggregate(records, startDate, endDate, type, dayNight, aggregation);
-
-        result.ifPresentOrElse(
-            r -> System.out.println("Result: " + r),
-            () -> System.out.println("No matching records found.")
-        );
     }
 }
